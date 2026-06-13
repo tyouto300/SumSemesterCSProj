@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Windows.Forms;
-//using SaltwaterTaffy;
-//using SaltwaterTaffy.Container;
+
 using System.Net;
 
 namespace SemesterCSProj {
@@ -45,13 +44,9 @@ namespace SemesterCSProj {
                 temp.copyIP(host, scannedIPs[host]);
             }
             return temp;
-        }
-        private static int increasePrefix(int prefix, int increaseBy = 8) {
-            //Increase prefix, default is 8, a full dot
-            return Math.Min(32, prefix + increaseBy);
-        }
+        }    
         //To make it reasonably possibly to finish, I will only handle cidr prefixes in 8 bit increments
-        public static void recursiveScanning(ScanDataResult ipScan, int recursionCount) {
+        public static void recursiveScanning(ScanDataResult ipScan, int recursionCount, int prefixIncrement = 8) {
             foreach (string ip in ipScan.connectedAddresses) {
                 ScanDataResult result = new ScanDataResult("", 32);
                 if (!scannedIPs.TryGetValue(ip, out result)) {
@@ -59,14 +54,13 @@ namespace SemesterCSProj {
                     //If we reach an ip address we've already seen, we don't want to scan it again, we already know whats behind it.
                     //We cannot find any new addresses either as we operate in a breadth first search, so the first time we get to an address
                     //we will have the highest recursionCount we could have.Technically not true, as nodes could connect during the scan, but I will not
-                    //handle this case
-                    int newPrefix = increasePrefix(ipScan.getPrefix(), 1);
-                    Console.WriteLine($"New prefix scan: {newPrefix}");
+                    //handle this case. By default, increase the network part by 8 bits every time
+                    int newPrefix = Math.Min(32, ipScan.getPrefix() + prefixIncrement);
                     if (newPrefix < 32 && recursionCount > 0) {
                         ScanDataResult newScan = new ScanDataResult(ip, newPrefix );
                         newScan.getIPInfo(String.Join(",", scannedIPs.Keys));
                         scannedIPs[ip] = newScan;
-                        recursiveScanning(scannedIPs[ip], recursionCount - 1);
+                        recursiveScanning(scannedIPs[ip], recursionCount - 1, prefixIncrement);
                     }
                 }
             }
@@ -75,19 +69,18 @@ namespace SemesterCSProj {
             //Main program handles organizing all scans, changing prefixes, and recursion. ScanData handles actually scannning of an ip and organizing those results
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            //string gatewayAddress = "10.128.0.1";//getDefaultGateway();
             string gatewayAddress = getDefaultGateway();
             string localAddress = getLocalAddress();
-            Console.WriteLine($"Local address: {localAddress}");
+            bool localScan = false;
             int cidrPrefix = 23;
-            ScanDataResult initialScan = new ScanDataResult(localAddress, cidrPrefix);
+            ScanDataResult initialScan = new ScanDataResult(localScan ? localAddress : gatewayAddress, cidrPrefix);
             initialScan.getIPInfo(String.Join(",", scannedIPs.Keys));
-            scannedIPs[localAddress] = initialScan;
-            recursiveScanning(initialScan, 4);
+            scannedIPs[localScan ? localAddress : gatewayAddress] = initialScan;
+            recursiveScanning(initialScan, 4, 1);
 
             Form1 displayForm = createForm();
-            displayForm.setGatewayAddress(localAddress, initialScan);
-            displayForm.updateMyAddress(localAddress);
+            displayForm.setStartAddress(localScan ? localAddress : gatewayAddress, initialScan);
+            displayForm.updateMyAddress(localScan ? localAddress : gatewayAddress);
             Application.Run(displayForm);
         }
 

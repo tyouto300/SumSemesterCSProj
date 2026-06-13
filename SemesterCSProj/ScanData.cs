@@ -29,7 +29,7 @@ namespace ScanData {
         }
         //static Dictionary<string, HostDataResult> scannedIPs = new Dictionary<string, HostDataResult>();
         public HashSet<string> getIPInfo(string seenHosts = "") {
-            Console.WriteLine($"Starting scan with IP {scanAddress} and prefix {cidrPrefix}");
+            //Console.WriteLine($"Starting scan with IP {scanAddress} and prefix {cidrPrefix}");
             
             Scanner scanner = new Scanner(new Target(scanAddress + $"/{cidrPrefix}"));
             //standard scanner optionset. Later change this to be a constant and allow for dynamic choosing of options
@@ -41,7 +41,7 @@ namespace ScanData {
                 {NmapFlag.HostScan, "-sn"},
                 
             };
-            if(seenHosts != "") {
+            if(seenHosts != "") {//Adding all seen hosts to the exclude flag. Doesnt work but it should
                 scanner.PersistentOptions.Add(NmapFlag.ExcludeHosts, seenHosts);
             }
             var scanResult = scanner.Scan();
@@ -50,7 +50,7 @@ namespace ScanData {
                 string scannedIP = i.Address.ToString();
                 //Add scanned IP to current addresses connected list
                 AddConnectedIP(scannedIP);
-                Console.WriteLine(scannedIP);
+                //Console.WriteLine(scannedIP);
             }
             //After getting ip info, return the set of connected ips so that the main program can add them to the dictionary
             return connectedAddresses;
