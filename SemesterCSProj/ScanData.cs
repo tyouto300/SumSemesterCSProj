@@ -50,7 +50,7 @@ namespace ScanData {
                 string scannedIP = i.Address.ToString();
                 //Add scanned IP to current addresses connected list
                 AddConnectedIP(scannedIP);
-                //Console.WriteLine(scannedIP);
+                Console.WriteLine(scannedIP);
             }
             //After getting ip info, return the set of connected ips so that the main program can add them to the dictionary
             return connectedAddresses;
