@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Windows.Forms;
-
 using System.Net;
 
 namespace SemesterCSProj {
@@ -76,7 +75,7 @@ namespace SemesterCSProj {
             ScanDataResult initialScan = new ScanDataResult(localScan ? localAddress : gatewayAddress, cidrPrefix);
             initialScan.getIPInfo(String.Join(",", scannedIPs.Keys));
             scannedIPs[localScan ? localAddress : gatewayAddress] = initialScan;
-            recursiveScanning(initialScan, 4, 1);
+            recursiveScanning(initialScan, 4);
 
             Form1 displayForm = createForm();
             displayForm.setStartAddress(localScan ? localAddress : gatewayAddress, initialScan);
