@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 namespace ScanData {
     public class ScanDataResult {
-        //Each object represents an nmap scan on an ip
+        //Each object represents an nmap scan on an ip, includes children, prefix used, and scan address
         string scanAddress;
         int cidrPrefix;
         public HashSet<string> connectedAddresses;
@@ -27,7 +27,9 @@ namespace ScanData {
         public int getPrefix() {
             return cidrPrefix;
         }
-        //static Dictionary<string, HostDataResult> scannedIPs = new Dictionary<string, HostDataResult>();
+        public string getAddress() {
+            return scanAddress;
+        }
         public HashSet<string> getIPInfo(string seenHosts = "") {
             //Console.WriteLine($"Starting scan with IP {scanAddress} and prefix {cidrPrefix}");
             
