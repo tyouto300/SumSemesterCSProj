@@ -24,7 +24,7 @@ namespace SemesterCSProj{
         formDrawer temp = new formDrawer();
         temp.circleRadius = circleRadius;
         temp.hostDefaultColor = hostColorDefault;
-        temp.specialHostColor = specialHostColor;
+        temp.hostSpecialColor = specialHostColor;
         temp.nodeDims = (hostCircleSize, hostCircleSize);
         temp.arcRadius = arcRadius;
         temp.defaultLineColor = lineColor;
@@ -56,7 +56,7 @@ namespace SemesterCSProj{
         //method to build label for a host node
         private Label buildLabel(int x, int y, string name) {
             Label label = new Label();
-            label.Location = new Point(x /*- 40*/, y /*- 15*/);
+            label.Location = new Point( x, y );
             label.Size = new Size(50, 15);
             label.Text = name;
             label.AutoSize = true;
@@ -71,7 +71,7 @@ namespace SemesterCSProj{
                 if (this.Controls.Find(arcHost.scanAddress, true).Length == 0) {//Failsafe to avoid redrawing nodes that have been drawn already
                     g.DrawLine(linkedDrawer.defaultLineColor, arcHost.parentPos.x, arcHost.parentPos.y, arcHost.arcHostPos.x + 5, arcHost.arcHostPos.y + 5);
                     this.Controls.Add(arcHost.hostAddressDisplay);
-                    g.FillEllipse(arcHost.scanAddress == linkedDrawer.myAddress ? linkedDrawer.specialHostColor : linkedDrawer.hostDefaultColor,
+                    g.FillEllipse(arcHost.scanAddress == linkedDrawer.myAddress ? linkedDrawer.hostSpecialColor : linkedDrawer.hostDefaultColor,
                         arcHost.arcHostPos.x, arcHost.arcHostPos.y,
                         linkedDrawer.nodeDims.h, linkedDrawer.nodeDims.w);
                 }
@@ -92,13 +92,10 @@ namespace SemesterCSProj{
 
                 int x = (int)(linkedDrawer.startPos.x + (linkedDrawer.circleRadius * Math.Cos(angleAccumulated)));
                 int y = (int)(linkedDrawer.startPos.y + (linkedDrawer.circleRadius * Math.Sin(angleAccumulated)));
-                if ((linkedDrawer.startPos.y + linkedDrawer.circleRadius) - y <= 15 || y - (linkedDrawer.startPos.y - linkedDrawer.circleRadius) <= 15) {//If the y position is within 15 units of the direct poles of the circle
+                if ((linkedDrawer.startPos.y + linkedDrawer.circleRadius) - y <= 15 || y - (linkedDrawer.startPos.y - linkedDrawer.circleRadius) <= 15) {
+                    //If the y position is within 15 units of the direct poles of the circle, shift the label upwards or downwards
                     int toShiftDown = (linkedDrawer.startPos.y + linkedDrawer.circleRadius) - y;
                     int toShiftUp = y - (linkedDrawer.startPos.y - linkedDrawer.circleRadius);
-                    //label needs to shift to the right as it appraoches the poles from the right, and left vv
-                    //int newX = x >= linkedDrawer.startPos.x ? x + ((linkedDrawer.startPos.x + linkedDrawer.circleRadius) - x) : x - (x - (linkedDrawer.startPos.x + linkedDrawer.circleRadius));
-                    //int newX = x >= linkedDrawer.startPos.x ? x + (25 - toShiftDown) : x - (25 - toShiftUp);
-                    //int newX = x >= linkedDrawer.startPos.x ? x + (40 - toShiftDown) : x - (40 - toShiftUp);
                     int newY = y >= linkedDrawer.startPos.y ? y + (25 - toShiftDown) : y - (25 - toShiftUp);
                     this.Controls.Add(buildLabel(x - 40, newY, i));
                 }
@@ -112,38 +109,31 @@ namespace SemesterCSProj{
                 Console.WriteLine($"Currently drawing results for address {i}");
                 Console.WriteLine("Connected addresses: ");
                 linkedDrawer.currentWorkingAddr.Item2.printConnectedAddresses();
-                //linkedDrawer.arcHostPos = (x, y);
-                //linkedDrawer.arcAngle = angleAccumulated;
 
                 int point = 0;//Arc calculation is slightly different. Represents ith node being drawn on the end of the arc
-                //This is awful. I cannot move this into a method because if I did, then they would not be called when the line is read, but their call would be queued,
-                //And only after the circle is finished would it be draw, WITH the last value the linkedDrawer had as its arc parameters. Unreal as to why it works like that
                 //Each arc gets to display its elements in an angle of 2 * theta
                 double totalArcAngle = 2 * theta;
                 foreach (string arcHost in linkedDrawer.currentWorkingAddr.Item2.connectedAddresses) {
-                    //if (this.Controls.Find(arcHost, true).Length == 0) {
                         ArcQueueElement toAdd = new ArcQueueElement();
                         //Amount of arc each child gets
                         double arcTheta = totalArcAngle / linkedDrawer.currentWorkingAddr.Item2.connectedAddresses.Count;
                         double newAngle = angleAccumulated + (point * arcTheta);
-                        toAdd.angleAllowed = newAngle;
                         int arcX = (int)(x + (linkedDrawer.arcRadius * Math.Cos(newAngle)));
                         int arcY = (int)(y + (linkedDrawer.arcRadius * Math.Sin(newAngle)));
-                        //problem is with assigning the arc host, assignment is wrong
 
+                        //assign necessary info to queue element
+                        toAdd.angleAllowed = newAngle;
                         toAdd.arcHostPos = (arcX, arcY);
                         toAdd.parentPos = (x, y);
-                        point += 1;
                         toAdd.hostAddressDisplay = buildLabel(arcX + 10, arcY, arcHost);
                         toAdd.scanAddress = arcHost;
-                        //Adjust drawing of line so that it fits to host better
-                        //Fix drawing of hosts who have already been drawn
                         arcsToDraw.Enqueue(toAdd);
-                    //}
+
+                        point += 1;
                 }
                 angleAccumulated += theta;
                 //When doing arc drawing, draw arc nodes and lines before the node the arc from
-                g.FillEllipse(i == linkedDrawer.myAddress ? new SolidBrush(Color.Purple) : hostColorDefault, x, y, hostCircleSize, hostCircleSize);
+                g.FillEllipse(i == linkedDrawer.myAddress ? linkedDrawer.hostSpecialColor : linkedDrawer.hostDefaultColor, x, y, linkedDrawer.nodeDims.h, linkedDrawer.nodeDims.w);
             }
             g.FillEllipse(hostColorDefault, linkedDrawer.startPos.x, linkedDrawer.startPos.y, linkedDrawer.nodeDims.h, linkedDrawer.nodeDims.w);
         }

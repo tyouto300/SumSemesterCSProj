@@ -9,6 +9,12 @@ namespace ScanData {
         string scanAddress;
         int cidrPrefix;
         public HashSet<string> connectedAddresses;
+        NmapOptions standardOptions = new NmapOptions {
+            {NmapFlag.MaxRttTimeout,"200ms"},
+                {NmapFlag.MaxRetries, "2"},
+                {NmapFlag.NeverDnsResolve, "-n"},
+                {NmapFlag.HostScan, "-sn"}
+        };
         public ScanDataResult(string scanAddress,int prefix) {
             this.scanAddress = scanAddress;
             cidrPrefix = prefix;
@@ -34,15 +40,8 @@ namespace ScanData {
             //Console.WriteLine($"Starting scan with IP {scanAddress} and prefix {cidrPrefix}");
             
             Scanner scanner = new Scanner(new Target(scanAddress + $"/{cidrPrefix}"));
-            //standard scanner optionset. Later change this to be a constant and allow for dynamic choosing of options
             //Chosen for speed and privacy over information gathered. Port info doesn't matter for this application, OS could be interesting
-            scanner.PersistentOptions = new NmapOptions {
-                {NmapFlag.MaxRttTimeout,"200ms"},
-                {NmapFlag.MaxRetries, "2"},
-                {NmapFlag.NeverDnsResolve, "-n"},
-                {NmapFlag.HostScan, "-sn"},
-                
-            };
+            scanner.PersistentOptions = standardOptions;
             if(seenHosts != "") {//Adding all seen hosts to the exclude flag. Doesnt work but it should
                 scanner.PersistentOptions.Add(NmapFlag.ExcludeHosts, seenHosts);
             }
