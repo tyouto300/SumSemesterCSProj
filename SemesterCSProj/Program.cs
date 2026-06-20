@@ -27,6 +27,7 @@ namespace SemesterCSProj {
             }
         }
         private static string getLocalAddress() {
+            //Gets local address of the running machine
             string localhost = Dns.GetHostEntry(Dns.GetHostName()).AddressList
                 .FirstOrDefault(i => i.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).ToString();
             if (localhost != null) {
@@ -37,6 +38,7 @@ namespace SemesterCSProj {
                 return "";
             }
         }
+        //Create new form and copy dictionary data over
         private static Form1 createForm() {
             Form1 temp = new Form1();
             foreach(string host in scannedIPs.Keys) {
@@ -53,7 +55,8 @@ namespace SemesterCSProj {
                     //If we reach an ip address we've already seen, we don't want to scan it again, we already know whats behind it.
                     //We cannot find any new addresses either as we operate in a breadth first search, so the first time we get to an address
                     //we will have the highest recursionCount we could have.Technically not true, as nodes could connect during the scan, but I will not
-                    //handle this case. By default, increase the network part by 8 bits every time
+                    //handle this case. By default, increase the network part by 8 bits every time, until we are at 32. If we are at 32 then skip, as 
+                    //we would have seen it in a previous scan and we can't find anything else from scanning it
                     int newPrefix = Math.Min(32, ipScan.getPrefix() + prefixIncrement);
                     if (newPrefix < 32 && recursionCount > 0) {
                         ScanDataResult newScan = new ScanDataResult(ip, newPrefix );
@@ -70,12 +73,12 @@ namespace SemesterCSProj {
             Application.SetCompatibleTextRenderingDefault(false);
             string gatewayAddress = getDefaultGateway();
             string localAddress = getLocalAddress();
-            bool localScan = false;
+            bool localScan = true;
             int cidrPrefix = 23;
             ScanDataResult initialScan = new ScanDataResult(localScan ? localAddress : gatewayAddress, cidrPrefix);
             initialScan.getIPInfo(String.Join(",", scannedIPs.Keys));
             scannedIPs[localScan ? localAddress : gatewayAddress] = initialScan;
-            recursiveScanning(initialScan, 4);
+            recursiveScanning(initialScan, 4, 1);
 
             Form1 displayForm = createForm();
             displayForm.setStartAddress(localScan ? localAddress : gatewayAddress, initialScan);
