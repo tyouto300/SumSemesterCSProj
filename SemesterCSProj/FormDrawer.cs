@@ -10,6 +10,8 @@ namespace SemesterCSProj {
         public (int h, int w) nodeDims { get; set; }
         public (int x, int y) startPos { get; set; }
         public Brush hostDefaultColor { get; set; }
+        public Brush specialHostColor { get; set; }
+        public Pen defaultLineColor { get; set; }
         //Variables to control drawing arc. Current pos,connected addresses...
         public double arcAngle { get; set; }
         public (string, ScanDataResult) currentWorkingAddr { get; set; }
